@@ -1,0 +1,135 @@
+services:
+  chatbot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=postgresql://chatwoot:${POSTGRES_PASSWORD:-changeme}@postgres:5432/chatbot
+      - EVOLUTION_API_URL=http://evolution-api:8080
+      - CHATWOOT_API_URL=http://chatwoot:3000
+      - CHATWOOT_API_KEY=${CHATWOOT_API_KEY:-changeme}
+      - CHATWOOT_ACCOUNT_ID=${CHATWOOT_ACCOUNT_ID:-1}
+    depends_on:
+      - evolution-api
+      - postgres
+    restart: unless-stopped
+
+  evolution-api:
+    image: evoapicloud/evolution-api:v2.3.7
+    ports:
+      - "8080:8080"
+    environment:
+      - SERVER_URL=http://localhost:8080
+      - CONFIG_SESSION_PHONE_CLIENT=Ubuntu
+      - CONFIG_SESSION_PHONE_NAME=Chrome
+      - CONFIG_SESSION_PHONE_VERSION=22.04.4
+      - AUTHENTICATION_API_KEY=${EVOLUTION_API_KEY:-changeme}
+      - AUTHENTICATION_EXPOSE_IN_FETCH_INSTANCES=true
+      - WEBHOOK_GLOBAL_ENABLED=false
+      - DEL_INSTANCE=false
+      - DATABASE_ENABLED=true
+      - DATABASE_PROVIDER=postgresql
+      - DATABASE_CONNECTION_URI=postgresql://chatwoot:${POSTGRES_PASSWORD:-changeme}@postgres:5432/evolution
+      - DATABASE_CONNECTION_CLIENT_NAME=evolution
+      - DATABASE_SAVE_DATA_INSTANCE=true
+      - DATABASE_SAVE_DATA_NEW_MESSAGE=true
+      - DATABASE_SAVE_MESSAGE_UPDATE=true
+      - DATABASE_SAVE_DATA_CONTACTS=true
+      - DATABASE_SAVE_DATA_CHATS=true
+      - CHATWOOT_ENABLED=true
+      - CHATWOOT_URL=http://chatwoot:3000
+      - CHATWOOT_TOKEN=${CHATWOOT_API_KEY:-changeme}
+      - CHATWOOT_ACCOUNT_ID=1
+      - CHATWOOT_SIGN_MSG=true
+      - CHATWOOT_REOPEN_CONVERSATION=true
+      - CHATWOOT_CONVERSATION_PENDING=false
+      - CHATWOOT_IMPORT_CONTACTS=true
+      - CHATWOOT_IMPORT_MESSAGES=true
+      - CHATWOOT_DAYS_LIMIT_IMPORT_MESSAGES=3
+      - CHATWOOT_AUTO_CREATE=true
+      - CHATWOOT_NAME_INBOX=WhatsApp Temporalis
+      - CHATWOOT_MERGE_BRAZIL_CONTACTS=true
+      - CACHE_REDIS_ENABLED=true
+      - CACHE_REDIS_URI=redis://redis:6379
+      - CACHE_REDIS_PREFIX_KEY=evolution
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - evolution_data:/evolution/instances
+    restart: unless-stopped
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    command: tunnel --url http://chatbot:8000
+    depends_on:
+      - chatbot
+    restart: unless-stopped
+
+  postgres:
+    image: pgvector/pgvector:pg15
+    environment:
+      POSTGRES_DB: chatwoot
+      POSTGRES_USER: chatwoot
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
+  chatwoot:
+    image: chatwoot/chatwoot:latest
+    depends_on:
+      - postgres
+      - redis
+    ports:
+      - "3000:3000"
+    environment:
+      - RAILS_ENV=production
+      - SECRET_KEY_BASE=${CHATWOOT_SECRET_KEY_BASE:-changeme}
+      - FRONTEND_URL=http://localhost:3000
+      - DEFAULT_LOCALE=pt_BR
+      - FORCE_SSL=false
+      - ENABLE_ACCOUNT_SIGNUP=false
+      - REDIS_URL=redis://redis:6379
+      - DATABASE_URL=postgresql://chatwoot:${POSTGRES_PASSWORD:-changeme}@postgres:5432/chatwoot
+      - ACTIVE_STORAGE_SERVICE=local
+      - RAILS_LOG_TO_STDOUT=true
+    entrypoint: docker/entrypoints/rails.sh
+    command: bundle exec rails s -p 3000 -b 0.0.0.0
+    volumes:
+      - chatwoot_storage:/app/storage
+    restart: unless-stopped
+
+  chatwoot-worker:
+    image: chatwoot/chatwoot:latest
+    depends_on:
+      - postgres
+      - redis
+    environment:
+      - RAILS_ENV=production
+      - SECRET_KEY_BASE=${CHATWOOT_SECRET_KEY_BASE:-changeme}
+      - FRONTEND_URL=http://chatwoot:3000
+      - REDIS_URL=redis://redis:6379
+      - DATABASE_URL=postgresql://chatwoot:${POSTGRES_PASSWORD:-changeme}@postgres:5432/chatwoot
+      - ACTIVE_STORAGE_SERVICE=local
+    entrypoint: docker/entrypoints/rails.sh
+    command: bundle exec sidekiq -C config/sidekiq.yml
+    volumes:
+      - chatwoot_storage:/app/storage
+    restart: unless-stopped
+
+volumes:
+  evolution_data:
+  postgres_data:
+  redis_data:
+  chatwoot_storage:

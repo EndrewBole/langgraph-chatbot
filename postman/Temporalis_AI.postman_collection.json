@@ -1,0 +1,233 @@
+{
+  "info": {
+    "name": "Temporalis AI Chatbot",
+    "description": "Coleção de endpoints do chatbot WhatsApp Temporalis AI",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000"
+    },
+    {
+      "key": "zapi_client_token",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Webhook WhatsApp",
+      "item": [
+        {
+          "name": "Mensagem de texto (Cat. A - peças)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Client-Token",
+                "value": "{{zapi_client_token}}",
+                "description": "Token de autenticação Z-API (deixe vazio se ZAPI_CLIENT_TOKEN não estiver configurado)"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"5511999999999\",\n  \"fromMe\": false,\n  \"isGroup\": false,\n  \"text\": {\n    \"message\": \"preciso de filtro para cb300\"\n  },\n  \"messageId\": \"test-peca-001\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/webhook/whatsapp",
+              "host": ["{{base_url}}"],
+              "path": ["webhook", "whatsapp"]
+            },
+            "description": "Categoria A — pergunta sobre peças, aciona tool buscar (RAG)"
+          }
+        },
+        {
+          "name": "Mensagem de texto (Cat. B - geral)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Client-Token",
+                "value": "{{zapi_client_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"5511999999999\",\n  \"fromMe\": false,\n  \"isGroup\": false,\n  \"text\": {\n    \"message\": \"qual o horário de funcionamento?\"\n  },\n  \"messageId\": \"test-geral-001\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/webhook/whatsapp",
+              "host": ["{{base_url}}"],
+              "path": ["webhook", "whatsapp"]
+            },
+            "description": "Categoria B — pergunta geral, resposta direta sem RAG"
+          }
+        },
+        {
+          "name": "Mensagem de texto (Cat. C - retirada)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Client-Token",
+                "value": "{{zapi_client_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"5511999999999\",\n  \"fromMe\": false,\n  \"isGroup\": false,\n  \"text\": {\n    \"message\": \"onde fica a loja para retirar minha peça?\"\n  },\n  \"messageId\": \"test-retirada-001\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/webhook/whatsapp",
+              "host": ["{{base_url}}"],
+              "path": ["webhook", "whatsapp"]
+            },
+            "description": "Categoria C — retirada, retorna endereço Rua P R A, 313"
+          }
+        },
+        {
+          "name": "Mensagem de texto (Cat. D - devolução)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Client-Token",
+                "value": "{{zapi_client_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"5511999999999\",\n  \"fromMe\": false,\n  \"isGroup\": false,\n  \"text\": {\n    \"message\": \"quero devolver uma peça que comprei pelo mercado livre\"\n  },\n  \"messageId\": \"test-devolucao-001\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/webhook/whatsapp",
+              "host": ["{{base_url}}"],
+              "path": ["webhook", "whatsapp"]
+            },
+            "description": "Categoria D — devolução, identifica canal de compra"
+          }
+        },
+        {
+          "name": "Mensagem de texto (Cat. E - humano)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Client-Token",
+                "value": "{{zapi_client_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"5511999999999\",\n  \"fromMe\": false,\n  \"isGroup\": false,\n  \"text\": {\n    \"message\": \"quero falar com um atendente humano\"\n  },\n  \"messageId\": \"test-humano-001\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/webhook/whatsapp",
+              "host": ["{{base_url}}"],
+              "path": ["webhook", "whatsapp"]
+            },
+            "description": "Categoria E — solicita atendente humano, gera tag #HUMANO#"
+          }
+        },
+        {
+          "name": "Mensagem de áudio",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Client-Token",
+                "value": "{{zapi_client_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"5511999999999\",\n  \"fromMe\": false,\n  \"isGroup\": false,\n  \"audio\": {\n    \"audioUrl\": \"https://example.com/audio.ogg\"\n  },\n  \"messageId\": \"test-audio-001\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/webhook/whatsapp",
+              "host": ["{{base_url}}"],
+              "path": ["webhook", "whatsapp"]
+            },
+            "description": "Mensagem de áudio — transcreve via Whisper antes de processar"
+          }
+        },
+        {
+          "name": "Mensagem do próprio bot (ignorada)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Client-Token",
+                "value": "{{zapi_client_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"5511999999999\",\n  \"fromMe\": true,\n  \"isGroup\": false,\n  \"text\": {\n    \"message\": \"mensagem do bot\"\n  },\n  \"messageId\": \"test-fromme-001\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/webhook/whatsapp",
+              "host": ["{{base_url}}"],
+              "path": ["webhook", "whatsapp"]
+            },
+            "description": "fromMe=true — deve retornar OK sem processar (evita loop)"
+          }
+        },
+        {
+          "name": "Mensagem de grupo (ignorada)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Client-Token",
+                "value": "{{zapi_client_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"5511999999999\",\n  \"fromMe\": false,\n  \"isGroup\": true,\n  \"text\": {\n    \"message\": \"mensagem de grupo\"\n  },\n  \"messageId\": \"test-grupo-001\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/webhook/whatsapp",
+              "host": ["{{base_url}}"],
+              "path": ["webhook", "whatsapp"]
+            },
+            "description": "isGroup=true — deve retornar OK sem processar"
+          }
+        }
+      ]
+    }
+  ]
+}

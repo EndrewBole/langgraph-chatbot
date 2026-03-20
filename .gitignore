@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+.venv/
+.coverage
+
+# Environment
+.env
+
+# LangGraph
+.langgraph/
+
+# Data (catalog files)
+data/*
+!data/.gitkeep
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Claude Code (local settings only — agents are shared)
+.claude/settings.local.json
